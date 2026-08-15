@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cat Break 🐾</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --linen: #EBE1D2;      /* warm linen background */
+    --card: #FFFBF3;       /* candlelit card white */
+    --coffee: #4A3F35;     /* deep coffee ink */
+    --sage: #7C8A6B;       /* muted sage */
+    --rose: #C98F8F;       /* dusty rose */
+    --honey: #C99A44;      /* soft honey amber */
+    --shadow: #D9CBB4;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: var(--linen);
+    background-image:
+      radial-gradient(ellipse at 15% 10%, rgba(201,143,143,0.12), transparent 45%),
+      radial-gradient(ellipse at 85% 90%, rgba(124,138,107,0.14), transparent 50%);
+    font-family: 'Karla', sans-serif;
+    color: var(--coffee);
+    overflow-x: hidden;
+  }
+
+  /* floating paw prints, ambient background */
+  .paws{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .paw{
+    position: absolute;
+    font-size: 28px;
+    opacity: 0.10;
+    animation: drift linear infinite;
+    color: var(--sage);
+  }
+  @keyframes drift{
+    from{ transform: translateY(110vh) rotate(0deg); }
+    to{ transform: translateY(-10vh) rotate(40deg); }
+  }
+
+  .wrap{
+    position: relative;
+    z-index: 1;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 48px 20px 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  h1{
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-style: italic;
+    font-size: clamp(2.2rem, 7vw, 3.2rem);
+    margin: 0 0 4px;
+    color: var(--coffee);
+    letter-spacing: -0.5px;
+  }
+  h1 .hi{
+    display: inline-block;
+    font-style: normal;
+    color: var(--rose);
+  }
+
+  .subtitle{
+    font-size: 1.02rem;
+    font-weight: 500;
+    color: #8a7c6a;
+    margin: 0 0 32px;
+    letter-spacing: 0.2px;
+  }
+
+  /* the stage */
+  .stage{
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    max-height: 480px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, var(--sage), var(--honey));
+    padding: 10px;
+    box-shadow: 0 16px 0 var(--shadow), 0 22px 38px rgba(74,63,53,0.18);
+  }
+  .frame{
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .frame img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    animation: pop-in 0.4s ease;
+  }
+  @keyframes pop-in{
+    from{ opacity: 0; transform: scale(0.96); }
+    to{ opacity: 1; transform: scale(1); }
+  }
+  .loading{
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--honey);
+  }
+
+  .badge{
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    background: var(--card);
+    color: var(--coffee);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    border-radius: 999px;
+    box-shadow: 0 3px 0 rgba(74,63,53,0.12);
+  }
+
+  /* controls */
+  .controls{
+    margin-top: 28px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  button{
+    font-family: 'Karla', sans-serif;
+    font-weight: 700;
+    font-size: 0.98rem;
+    border: none;
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 14px 26px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  button:active{ transform: translateY(3px); }
+
+  .btn-primary{
+    background: var(--rose);
+    color: var(--card);
+    box-shadow: 0 5px 0 #a86d6d;
+  }
+  .btn-primary:hover{ transform: translateY(-2px); box-shadow: 0 7px 0 #a86d6d; }
+  .btn-primary:active{ box-shadow: 0 2px 0 #a86d6d; transform: translateY(3px); }
+
+  .btn-secondary{
+    background: var(--card);
+    color: var(--coffee);
+    box-shadow: 0 5px 0 var(--shadow);
+  }
+  .btn-secondary:hover{ transform: translateY(-2px); box-shadow: 0 7px 0 var(--shadow); }
+  .btn-secondary.active{
+    background: var(--sage);
+    color: var(--card);
+    box-shadow: 0 5px 0 #5f6b51;
+  }
+
+  .quote{
+    margin-top: 36px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--coffee);
+    max-width: 420px;
+    line-height: 1.4;
+    min-height: 2.8em;
+  }
+  .quote::before{ content: "“"; color: var(--rose); }
+  .quote::after{ content: "”"; color: var(--rose); }
+
+  footer{
+    margin-top: 40px;
+    font-size: 0.85rem;
+    color: #a4977f;
+    font-weight: 600;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .paw{ animation: none; display: none; }
+    .frame img{ animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="paws" id="paws"></div>
+
+<div class="wrap">
+  <h1>Cat Break <span class="hi">🐾</span></h1>
+  <p class="subtitle">a small, soft place to look at cats for a minute</p>
+
+  <div class="stage">
+    <div class="frame" id="frame">
+      <div class="loading">loading a cat…</div>
+    </div>
+    <div class="badge" id="badge">GIF</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-primary" id="nextBtn">🐱 Next cat</button>
+    <button class="btn-secondary" id="autoBtn">▶ Auto-play</button>
+  </div>
+
+  <p class="quote" id="quote">breathe in, breathe out, look at the cat</p>
+
+  <footer>refreshes from a public cat gif service · take your time 🐾</footer>
+</div>
+
+<script>
+  // ambient floating paw prints
+  const pawsContainer = document.getElementById('paws');
+  const pawCount = 10;
+  for(let i=0;i<pawCount;i++){
+    const p = document.createElement('div');
+    p.className = 'paw';
+    p.textContent = '🐾';
+    p.style.left = Math.random()*100 + 'vw';
+    p.style.animationDuration = (14 + Math.random()*10) + 's';
+    p.style.animationDelay = (Math.random()*14) + 's';
+    p.style.fontSize = (18 + Math.random()*22) + 'px';
+    pawsContainer.appendChild(p);
+  }
+
+  const quotes = [
+    "breathe in, breathe out, look at the cat",
+    "nothing bad has ever happened while watching a cat",
+    "this is your scheduled softness",
+    "the cat does not know your deadlines, and neither should you right now",
+    "small pause, small paws",
+    "you are allowed to do nothing for a moment",
+    "the cat is doing great, and so are you",
+    "a little chaos, a little comfort"
+  ];
+
+  const frame = document.getElementById('frame');
+  const quoteEl = document.getElementById('quote');
+  const nextBtn = document.getElementById('nextBtn');
+  const autoBtn = document.getElementById('autoBtn');
+
+  let autoTimer = null;
+  let autoOn = false;
+
+  function loadCat(){
+    frame.innerHTML = '<div class="loading">loading a cat…</div>';
+    const img = new Image();
+    // cataas.com = free public "cat as a service" gif endpoint, cache-busted for variety
+    const url = 'https://cataas.com/cat/gif?width=700&t=' + Date.now() + Math.random();
+    img.onload = () => {
+      frame.innerHTML = '';
+      frame.appendChild(img);
+    };
+    img.onerror = () => {
+      frame.innerHTML = '<div class="loading">the cats are shy right now, try again 🐾</div>';
+    };
+    img.src = url;
+    img.alt = 'A random cat gif';
+    quoteEl.textContent = quotes[Math.floor(Math.random()*quotes.length)];
+  }
+
+  function toggleAuto(){
+    autoOn = !autoOn;
+    if(autoOn){
+      autoBtn.textContent = '⏸ Pause';
+      autoBtn.classList.add('active');
+      autoTimer = setInterval(loadCat, 6000);
+    } else {
+      autoBtn.textContent = '▶ Auto-play';
+      autoBtn.classList.remove('active');
+      clearInterval(autoTimer);
+    }
+  }
+
+  nextBtn.addEventListener('click', loadCat);
+  autoBtn.addEventListener('click', toggleAuto);
+
+  loadCat();
+</script>
+
+</body>
+</html>
