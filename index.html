@@ -110,40 +110,40 @@
   }
   .float-item{
     position: absolute;
-    opacity: 0.16;
+    opacity: 0.22;
     animation: floatDrift linear infinite;
     user-select: none;
   }
   @keyframes floatDrift{
     0%{ transform: translateY(110vh) rotate(0deg) scale(0.9); opacity: 0; }
-    15%{ opacity: 0.22; }
-    85%{ opacity: 0.22; }
+    15%{ opacity: 0.35; }
+    85%{ opacity: 0.35; }
     100%{ transform: translateY(-10vh) rotate(35deg) scale(1.05); opacity: 0; }
   }
 
-  /* --- Story Vignette 1: Yarn Ball & Chasing Kitten --- */
+  /* --- Vignette 1: Yarn Ball & Chasing Kitten --- */
   .yarn-chase-track{
     position: fixed;
-    top: 24%;
+    top: 22%;
     left: 0;
     right: 0;
-    height: 90px;
+    height: 100px;
     pointer-events: none;
     z-index: 0;
     overflow: hidden;
   }
   .rolling-yarn{
     position: absolute;
-    top: 28px;
+    top: 30px;
     left: -80px;
-    font-size: 26px;
+    font-size: 28px;
     animation: yarnRoll 26s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     user-select: none;
   }
   @keyframes yarnRoll{
     0%{ transform: translateX(0) rotate(0deg); opacity: 0; }
-    3%{ opacity: 0.5; }
-    40%{ transform: translateX(calc(100vw + 120px)) rotate(1080deg); opacity: 0.5; }
+    3%{ opacity: 0.85; }
+    40%{ transform: translateX(calc(100vw + 120px)) rotate(1080deg); opacity: 0.85; }
     43%, 100%{ opacity: 0; transform: translateX(calc(100vw + 120px)); }
   }
 
@@ -151,71 +151,79 @@
     position: absolute;
     top: 20px;
     left: -170px;
-    width: 62px;
-    height: 42px;
-    color: var(--coffee);
-    opacity: 0.35;
+    width: 68px;
+    height: 46px;
+    opacity: 0.95;
     animation: catChase 26s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    filter: drop-shadow(0 2px 4px rgba(74, 63, 53, 0.15));
   }
   @keyframes catChase{
     0%{ transform: translateX(0); opacity: 0; }
-    3%{ opacity: 0.35; }
-    40%{ transform: translateX(calc(100vw + 120px)); opacity: 0.35; }
+    3%{ opacity: 0.95; }
+    40%{ transform: translateX(calc(100vw + 120px)); opacity: 0.95; }
     43%, 100%{ opacity: 0; transform: translateX(calc(100vw + 120px)); }
   }
   .chasing-cat .cat-legs{
-    animation: catLegRun 0.25s ease-in-out infinite alternate;
+    animation: catLegRun 0.22s ease-in-out infinite alternate;
     transform-origin: center;
   }
   @keyframes catLegRun{
+    0%{ transform: rotate(-10deg); }
+    100%{ transform: rotate(10deg); }
+  }
+  .chasing-cat .cat-tail{
+    animation: tailSwish 0.3s ease-in-out infinite alternate;
+    transform-origin: 14px 20px;
+  }
+  @keyframes tailSwish{
     0%{ transform: rotate(-8deg); }
-    100%{ transform: rotate(8deg); }
+    100%{ transform: rotate(12deg); }
   }
 
-  /* --- Story Vignette 2: Peek-a-Boo Cat Behind Card --- */
+  /* --- Vignette 2: Peek-a-Boo Cat Behind Card --- */
   .peeking-cat{
     position: absolute;
-    top: -34px;
-    left: 52px;
-    width: 58px;
-    height: 38px;
-    color: var(--coffee);
-    opacity: 0.55;
+    top: -38px;
+    left: 48px;
+    width: 64px;
+    height: 44px;
+    opacity: 0.95;
     z-index: 0;
     animation: peekCycle 18s ease-in-out infinite;
     transform-origin: bottom center;
+    filter: drop-shadow(0 2px 4px rgba(74, 63, 53, 0.15));
   }
   @keyframes peekCycle{
-    0%, 65%, 100%{ transform: translateY(30px); opacity: 0; }
-    70%{ transform: translateY(0); opacity: 0.65; }
+    0%, 65%, 100%{ transform: translateY(34px); opacity: 0; }
+    70%{ transform: translateY(0); opacity: 0.95; }
     74%{ transform: translateY(0) rotate(-4deg); }
     78%{ transform: translateY(0) rotate(4deg); }
     82%{ transform: translateY(0) rotate(0deg); }
-    88%{ transform: translateY(0); opacity: 0.65; }
-    92%{ transform: translateY(30px); opacity: 0; }
+    88%{ transform: translateY(0); opacity: 0.95; }
+    92%{ transform: translateY(34px); opacity: 0; }
   }
 
-  /* --- Story Vignette 3: Side Climber Cat --- */
+  /* --- Vignette 3: Side Climber Cat --- */
   .side-climber{
     position: fixed;
-    right: -2px;
-    bottom: 120px;
-    width: 44px;
-    height: 52px;
-    color: var(--sage);
-    opacity: 0.4;
+    right: -4px;
+    bottom: 110px;
+    width: 50px;
+    height: 58px;
+    opacity: 0.95;
     pointer-events: none;
     z-index: 0;
     animation: sideClimb 22s ease-in-out infinite;
     transform-origin: right center;
+    filter: drop-shadow(-2px 2px 4px rgba(74, 63, 53, 0.15));
   }
   @keyframes sideClimb{
-    0%, 45%, 100%{ transform: translateX(32px); opacity: 0; }
-    50%{ transform: translateX(0); opacity: 0.45; }
-    55%{ transform: translateX(0) rotate(-6deg); }
-    60%{ transform: translateX(0) rotate(2deg); }
-    66%{ transform: translateX(0); opacity: 0.45; }
-    72%{ transform: translateX(32px); opacity: 0; }
+    0%, 45%, 100%{ transform: translateX(36px); opacity: 0; }
+    50%{ transform: translateX(0); opacity: 0.95; }
+    55%{ transform: translateX(0) rotate(-5deg); }
+    60%{ transform: translateX(0) rotate(3deg); }
+    66%{ transform: translateX(0); opacity: 0.95; }
+    72%{ transform: translateX(36px); opacity: 0; }
   }
 
   .wrap{
@@ -441,30 +449,61 @@
 <!-- Story Vignette: Yarn Chase Track -->
 <div class="yarn-chase-track">
   <div class="rolling-yarn">🧶</div>
-  <svg class="chasing-cat" viewBox="0 0 64 42" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="28" cy="22" rx="16" ry="10"/>
-    <circle cx="48" cy="16" r="7"/>
-    <polygon points="45,11 48,4 51,12"/>
-    <polygon points="51,12 54,6 56,13"/>
-    <g class="cat-legs">
-      <rect x="18" y="28" width="4" height="11" rx="2" transform="rotate(-15 18 28)"/>
-      <rect x="25" y="28" width="4" height="11" rx="2" transform="rotate(15 25 28)"/>
-      <rect x="36" y="28" width="4" height="11" rx="2" transform="rotate(-15 36 28)"/>
-      <rect x="42" y="28" width="4" height="11" rx="2" transform="rotate(15 42 28)"/>
+  <!-- Full Color Illustrated Running Kitten -->
+  <svg class="chasing-cat" viewBox="0 0 68 46" xmlns="http://www.w3.org/2000/svg">
+    <!-- Ginger Fur Body -->
+    <ellipse cx="30" cy="24" rx="17" ry="11" fill="#E29D52"/>
+    <!-- Swishing Tail with White Tip -->
+    <g class="cat-tail">
+      <path d="M15 22 C9 16, 7 8, 11 4" stroke="#E29D52" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+      <path d="M12 7 C11 5, 10 4, 11 4" stroke="#FFFBF3" stroke-width="4.5" stroke-linecap="round" fill="none"/>
     </g>
-    <path d="M14 20 C8 15, 6 8, 10 4" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <!-- Running White Mitten Paws -->
+    <g class="cat-legs" fill="#FFFBF3" stroke="#E29D52" stroke-width="1.5">
+      <rect x="20" y="28" width="5" height="12" rx="2.5" transform="rotate(-15 20 28)"/>
+      <rect x="27" y="28" width="5" height="12" rx="2.5" transform="rotate(15 27 28)"/>
+      <rect x="38" y="28" width="5" height="12" rx="2.5" transform="rotate(-15 38 28)"/>
+      <rect x="45" y="28" width="5" height="12" rx="2.5" transform="rotate(15 45 28)"/>
+    </g>
+    <!-- Head & Cheeks -->
+    <circle cx="50" cy="17" r="8" fill="#E29D52"/>
+    <ellipse cx="48" cy="20" rx="3.5" ry="2.5" fill="#FFFBF3"/>
+    <!-- Outer Ears -->
+    <polygon points="45,12 48,3 52,12" fill="#E29D52"/>
+    <polygon points="52,12 56,4 59,13" fill="#E29D52"/>
+    <!-- Pink Inner Ears -->
+    <polygon points="46,11 48,5 50,11" fill="#E08E8E"/>
+    <polygon points="54,11 56,6 58,12" fill="#E08E8E"/>
+    <!-- Happy Arched Eyes & Pink Nose -->
+    <path d="M47 16 Q49 14 51 16" stroke="#4A3F35" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M53 16 Q55 14 57 16" stroke="#4A3F35" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <polygon points="51,19 52,17.5 53,19" fill="#E08E8E"/>
+    <!-- Whiskers -->
+    <line x1="42" y1="18" x2="38" y2="17" stroke="#4A3F35" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+    <line x1="42" y1="20" x2="38" y2="21" stroke="#4A3F35" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
   </svg>
 </div>
 
-<!-- Story Vignette: Side Climber Cat -->
-<svg class="side-climber" viewBox="0 0 44 52" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-  <ellipse cx="28" cy="26" rx="14" ry="18"/>
-  <circle cx="20" cy="14" r="8"/>
-  <polygon points="14,10 12,3 19,7"/>
-  <polygon points="19,7 23,2 26,10"/>
-  <ellipse cx="14" cy="26" rx="3.5" ry="7"/>
-  <ellipse cx="14" cy="40" rx="3.5" ry="7"/>
-  <path d="M38 34 C44 38, 42 46, 36 48" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>
+<!-- Story Vignette: Side Climber Cat (Full Color) -->
+<svg class="side-climber" viewBox="0 0 50 58" xmlns="http://www.w3.org/2000/svg">
+  <!-- Calico Cream Fur Body -->
+  <ellipse cx="32" cy="30" rx="14" ry="18" fill="#FFFBF3"/>
+  <path d="M28 16 C34 20, 36 26, 32 32 Z" fill="#E29D52"/>
+  <!-- Wagging Tail with Ginger Patch -->
+  <path d="M40 38 C46 42, 45 50, 38 52" stroke="#E29D52" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- Clinging White Paws -->
+  <ellipse cx="16" cy="28" rx="4.5" ry="7" fill="#FFFBF3" stroke="#D9CBB4" stroke-width="1"/>
+  <ellipse cx="16" cy="42" rx="4.5" ry="7" fill="#FFFBF3" stroke="#D9CBB4" stroke-width="1"/>
+  <!-- Head -->
+  <circle cx="24" cy="16" r="9" fill="#FFFBF3"/>
+  <!-- Ears -->
+  <polygon points="17,12 15,3 23,8" fill="#E29D52"/>
+  <polygon points="24,8 29,2 32,11" fill="#4A3F35"/>
+  <polygon points="18,10 16,5 21,8" fill="#E08E8E"/>
+  <!-- Curious Eyes & Nose -->
+  <circle cx="21" cy="16" r="1.5" fill="#4A3F35"/>
+  <circle cx="27" cy="16" r="1.5" fill="#4A3F35"/>
+  <polygon points="23.5,19 24.5,17.5 25.5,19" fill="#E08E8E"/>
 </svg>
 
 <div class="wrap">
@@ -477,15 +516,32 @@
   <p class="subtitle">a small, soft place to look at cats for a minute</p>
 
   <div class="stage">
-    <!-- Story Vignette: Peek-a-boo Cat above the card -->
-    <svg class="peeking-cat" viewBox="0 0 58 38" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="29" cy="24" rx="18" ry="13"/>
-      <polygon points="16,16 13,3 23,12"/>
-      <polygon points="35,12 45,3 42,16"/>
-      <ellipse cx="23" cy="23" rx="2" ry="3" fill="var(--card)"/>
-      <ellipse cx="35" cy="23" rx="2" ry="3" fill="var(--card)"/>
-      <ellipse cx="18" cy="35" rx="5" ry="3" fill="currentColor"/>
-      <ellipse cx="40" cy="35" rx="5" ry="3" fill="currentColor"/>
+    <!-- Story Vignette: Full Color Peek-a-boo Cat above the card -->
+    <svg class="peeking-cat" viewBox="0 0 64 44" xmlns="http://www.w3.org/2000/svg">
+      <!-- Head with Warm Honey Color -->
+      <ellipse cx="32" cy="26" rx="20" ry="14" fill="#E29D52"/>
+      <ellipse cx="32" cy="30" rx="9" ry="6" fill="#FFFBF3"/>
+      <!-- Ears -->
+      <polygon points="18,17 14,3 25,12" fill="#E29D52"/>
+      <polygon points="39,12 50,3 46,17" fill="#E29D52"/>
+      <!-- Pink Inner Ears -->
+      <polygon points="19,15 16,6 23,12" fill="#E08E8E"/>
+      <polygon points="41,12 48,6 45,15" fill="#E08E8E"/>
+      <!-- Big Shiny Expressive Eyes -->
+      <circle cx="25" cy="24" r="2.8" fill="#4A3F35"/>
+      <circle cx="39" cy="24" r="2.8" fill="#4A3F35"/>
+      <circle cx="24.2" cy="23" r="1" fill="#FFFFFF"/>
+      <circle cx="38.2" cy="23" r="1" fill="#FFFFFF"/>
+      <!-- Pink Nose -->
+      <polygon points="31,28 32,26.5 33,28" fill="#E08E8E"/>
+      <!-- Little Whiskers -->
+      <line x1="20" y1="27" x2="13" y2="26" stroke="#4A3F35" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
+      <line x1="20" y1="29" x2="14" y2="31" stroke="#4A3F35" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
+      <line x1="44" y1="27" x2="51" y2="26" stroke="#4A3F35" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
+      <line x1="44" y1="29" x2="50" y2="31" stroke="#4A3F35" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
+      <!-- Two Cute White Paws Resting on the Stage Frame -->
+      <ellipse cx="20" cy="39" rx="6" ry="4" fill="#FFFBF3" stroke="#D9CBB4" stroke-width="1.2"/>
+      <ellipse cx="44" cy="39" rx="6" ry="4" fill="#FFFBF3" stroke="#D9CBB4" stroke-width="1.2"/>
     </svg>
 
     <div class="frame" id="frame">
