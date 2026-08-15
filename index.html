@@ -21,6 +21,7 @@
     --btn-secondary-active-shadow: #5f6b51;
     --grad-a: rgba(201,143,143,0.12);
     --grad-b: rgba(124,138,107,0.14);
+    --grid-line: rgba(74, 63, 53, 0.04);
   }
 
   /* Dark cozy — for night use / headaches */
@@ -37,6 +38,7 @@
     --btn-secondary-active-shadow: #3d4a34;
     --grad-a: rgba(217,155,160,0.10);
     --grad-b: rgba(143,163,125,0.12);
+    --grid-line: rgba(241, 231, 218, 0.03);
   }
 
   /* Soft lavender */
@@ -53,6 +55,7 @@
     --btn-secondary-active-shadow: #7d6a99;
     --grad-a: rgba(201,168,217,0.14);
     --grad-b: rgba(150,134,184,0.14);
+    --grid-line: rgba(69, 62, 82, 0.04);
   }
 
   /* Soft matcha */
@@ -67,6 +70,7 @@
     --muted: #7c8a72;
     --btn-primary-shadow: #8a9968;
     --btn-secondary-active-shadow: #6d8060;
+    --grid-line: rgba(62, 74, 58, 0.04);
   }
 
   *{ box-sizing: border-box; }
@@ -75,10 +79,16 @@
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    background: var(--linen);
+    background-color: var(--linen);
+    /* Gingham / Windowpane Check Texture layered with cozy gradients */
     background-image:
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.15) 12px, transparent 12px),
+      linear-gradient(rgba(255, 255, 255, 0.15) 12px, transparent 12px),
       radial-gradient(ellipse at 15% 10%, var(--grad-a), transparent 45%),
       radial-gradient(ellipse at 85% 90%, var(--grad-b), transparent 50%);
+    background-size: 24px 24px, 24px 24px, 48px 48px, 48px 48px, 100% 100%, 100% 100%;
     font-family: 'Karla', sans-serif;
     color: var(--coffee);
     overflow-x: hidden;
@@ -133,7 +143,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     cursor: pointer;
     box-shadow: 0 3px 0 var(--shadow);
     transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.4s ease;
@@ -187,7 +197,6 @@
     transition: background-color 0.4s ease;
   }
 
-  /* two stacked layers for crossfade — no layout shift, just opacity */
   .layer{
     position: absolute;
     inset: 0;
@@ -204,6 +213,15 @@
     object-fit: cover;
     display: block;
     filter: saturate(0.92) brightness(1.02);
+  }
+
+  /* Fade in class for soft transition */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in forwards;
+  }
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: scale(0.985); }
+    100% { opacity: 1; transform: scale(1); }
   }
 
   .loading-cat{
@@ -325,6 +343,7 @@
     .paw{ animation: none; display: none; }
     .loading-cat, .zzz{ animation: none; }
     .layer{ transition: none; }
+    .fade-in{ animation: none; opacity: 1; }
   }
 </style>
 </head>
@@ -334,7 +353,7 @@
 
 <div class="wrap">
   <div class="top-row">
-    <button class="icon-btn" id="soundBtn" title="Ambient sound: off">🔇</button>
+    <button class="icon-btn" id="soundBtn" title="Ambient sound: off">🧶</button>
     <button class="icon-btn" id="themeBtn" title="Change theme">🎨</button>
   </div>
 
@@ -396,13 +415,13 @@
   let backLayer = layerB;
   let autoTimer = null;
   let autoOn = false;
-  let nextReady = null;   // a promise resolving to a preloaded <img>, ready to show instantly
+  let nextReady = null;
 
   const SLEEPING_CAT_SVG = `
     <div class="loading-cat">
       <svg viewBox="0 0 160 110" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="80" cy="88" rx="58" ry="10" fill="#D9CBB4" opacity="0.4"/>
-        <path d="M25 70 C15 45, 35 20, 65 22 C60 12, 72 6, 80 12 C88 6, 100 12, 95 22 C125 20, 145 45, 135 70 C145 78, 140 92, 125 92 L35 92 C20 92, 15 78, 25 70 Z" fill="#C99A44" opacity="0.9"/>
+        <path d="M25 70 C15 45, 35 20, 65 22 C60 12, 72 6, 80 12 C88 6, 100 12, 95 22 C125 20, 145 45, 135 70 Z" fill="#C99A44" opacity="0.9"/>
         <path d="M45 26 L38 8 L58 24 Z" fill="#C99A44"/>
         <path d="M115 26 L122 8 L102 24 Z" fill="#C99A44"/>
         <path d="M45 26 L41 14 L54 23 Z" fill="#C98F8F"/>
@@ -425,7 +444,6 @@
     ]);
   }
 
-  // Resolves to a fully-loaded <img> element (not yet attached to the page)
   function preloadImg(url){
     return withTimeout(new Promise((resolve, reject) => {
       const img = new Image();
@@ -436,7 +454,6 @@
     }), 4000);
   }
 
-  // Tries The Cat API (gifs only), then cataas.com, and resolves a loaded <img> or null
   async function fetchCatImage(){
     try{
       const res = await withTimeout(fetch('https://api.thecatapi.com/v1/images/search?mime_types=gif&t=' + Date.now()), 3500);
@@ -444,16 +461,15 @@
       if(data && data[0] && data[0].url){
         return await preloadImg(data[0].url);
       }
-    } catch(e){ /* try next source */ }
+    } catch(e){ }
 
     try{
       return await preloadImg('https://cataas.com/cat/gif?width=700&t=' + Date.now() + Math.random());
-    } catch(e){ /* both sources failed */ }
+    } catch(e){ }
 
     return null;
   }
 
-  // Kicks off a background fetch for the *next* cat, cached in `nextReady`
   function prefetchNext(){
     nextReady = fetchCatImage();
   }
@@ -461,11 +477,9 @@
   async function showNextCat(){
     quoteEl.textContent = quotes[Math.floor(Math.random()*quotes.length)];
 
-    // Use the preloaded cat if it's ready; otherwise fetch on the spot
     let imgPromise = nextReady || fetchCatImage();
     nextReady = null;
 
-    // Only show the sleeping-cat loader if nothing was preloaded and it's taking a moment
     const loaderTimer = setTimeout(() => {
       backLayer.innerHTML = SLEEPING_CAT_SVG;
       backLayer.classList.add('visible');
@@ -484,13 +498,14 @@
       return;
     }
 
+    img.classList.add('fade-in');
+    
     backLayer.innerHTML = '';
     backLayer.appendChild(img);
     backLayer.classList.add('visible');
     frontLayer.classList.remove('visible');
     [frontLayer, backLayer] = [backLayer, frontLayer];
 
-    // start loading the *next* cat immediately, in the background
     prefetchNext();
   }
 
@@ -526,10 +541,10 @@
     themeBtn.title = t.label;
   });
 
-  /* ---------- ambient audio (procedurally generated, no external files) ---------- */
+  /* ---------- ambient audio ---------- */
   let audioCtx = null;
-  let currentSound = null;   // { stop() }
-  const soundModes = ['off', 'purr', 'rain'];
+  let currentSound = null;
+  const soundModes = ['off', 'meow', 'strings', 'piano'];
   let soundIndex = 0;
 
   function ensureAudioCtx(){
@@ -539,70 +554,108 @@
     return audioCtx;
   }
 
-  function startPurr(ctx){
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = 28;
-
-    const lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = 5;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.07;
-
-    const gain = ctx.createGain();
-    gain.gain.value = 0;
-    gain.gain.setTargetAtTime(0.16, ctx.currentTime, 0.4);
-
-    lfo.connect(lfoGain);
-    lfoGain.connect(gain.gain);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    lfo.start();
-
-    return {
-      stop(){
-        gain.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
-        setTimeout(() => { osc.stop(); lfo.stop(); }, 500);
-      }
-    };
+  function startMeow(ctx) {
+    let isPlaying = true;
+    function playMeow() {
+      if(!isPlaying) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine'; 
+      
+      osc.frequency.setValueAtTime(400, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.4);
+      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 1.0);
+      
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.3);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 1.0);
+      
+      setTimeout(playMeow, 4000 + Math.random() * 4000); 
+    }
+    playMeow();
+    return { stop() { isPlaying = false; } };
   }
 
-  function startRain(ctx){
-    const bufferSize = 2 * ctx.sampleRate;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for(let i=0;i<bufferSize;i++){ data[i] = Math.random()*2 - 1; }
-
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    noise.loop = true;
-
+  function startStrings(ctx) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const osc3 = ctx.createOscillator();
+    
+    osc1.type = 'triangle';
+    osc2.type = 'triangle';
+    osc3.type = 'sine';
+    
+    osc1.frequency.value = 196.00; // G3
+    osc2.frequency.value = 246.94; // B3
+    osc3.frequency.value = 293.66; // D4
+    
     const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 1400;
-    filter.Q.value = 0.6;
-
+    filter.type = 'lowpass';
+    filter.frequency.value = 600;
+    
     const gain = ctx.createGain();
     gain.gain.value = 0;
-    gain.gain.setTargetAtTime(0.05, ctx.currentTime, 0.4);
-
-    noise.connect(filter);
+    gain.gain.setTargetAtTime(0.06, ctx.currentTime, 2); 
+    
+    osc1.connect(filter);
+    osc2.connect(filter);
+    osc3.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
-    noise.start();
-
+    
+    osc1.start();
+    osc2.start();
+    osc3.start();
+    
     return {
-      stop(){
-        gain.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
-        setTimeout(() => noise.stop(), 500);
+      stop() {
+        gain.gain.setTargetAtTime(0, ctx.currentTime, 1);
+        setTimeout(() => { osc1.stop(); osc2.stop(); osc3.stop(); }, 2000);
       }
     };
   }
 
-  const soundIcons = { off: '🔇', purr: '🐾', rain: '🌧️' };
-  const soundTitles = { off: 'Ambient sound: off', purr: 'Ambient sound: purring', rain: 'Ambient sound: rain' };
+  function startPiano(ctx) {
+    let isPlaying = true;
+    const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
+    
+    function playNote() {
+      if(!isPlaying) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      
+      const note = notes[Math.floor(Math.random() * notes.length)];
+      osc.frequency.setValueAtTime(note, ctx.currentTime);
+      
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 3);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 3);
+      
+      setTimeout(playNote, 600 + Math.random() * 800);
+    }
+    playNote();
+    return { stop() { isPlaying = false; } };
+  }
+
+  /* Set A Cute & Whimsical Icons */
+  const soundIcons = { off: '🧶', meow: '🐾', strings: '🌾', piano: '🌸' };
+  const soundTitles = { 
+    off: 'Ambient sound: off', 
+    meow: 'Ambient sound: gentle meow', 
+    strings: 'Ambient sound: soft strings', 
+    piano: 'Ambient sound: soft piano' 
+  };
 
   soundBtn.addEventListener('click', () => {
     if(currentSound){ currentSound.stop(); currentSound = null; }
@@ -615,7 +668,10 @@
     if(mode === 'off') return;
     const ctx = ensureAudioCtx();
     if(ctx.state === 'suspended') ctx.resume();
-    currentSound = mode === 'purr' ? startPurr(ctx) : startRain(ctx);
+    
+    if(mode === 'meow') currentSound = startMeow(ctx);
+    else if(mode === 'strings') currentSound = startStrings(ctx);
+    else if(mode === 'piano') currentSound = startPiano(ctx);
   });
 
   /* ---------- initial load ---------- */
