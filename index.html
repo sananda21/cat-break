@@ -268,23 +268,6 @@
     100%{ opacity: 0; transform: translate(6px,-14px); }
   }
 
-  .badge{
-    position: absolute;
-    top: 18px;
-    left: 18px;
-    background: var(--card);
-    color: var(--coffee);
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 0.85rem;
-    padding: 6px 14px;
-    border-radius: 999px;
-    box-shadow: 0 3px 0 rgba(0,0,0,0.12);
-    z-index: 3;
-    transition: background-color 0.4s ease;
-  }
-
   .controls{
     margin-top: 28px;
     display: flex;
@@ -373,7 +356,6 @@
       <div class="layer visible" id="layerA"></div>
       <div class="layer" id="layerB"></div>
     </div>
-    <div class="badge" id="badge">GIF</div>
   </div>
 
   <div class="controls">
@@ -554,10 +536,10 @@
     themeBtn.title = t.label;
   });
 
-  /* ---------- ambient audio ---------- */
+  /* ---------- ambient audio (Melodies) ---------- */
   let audioCtx = null;
   let currentSound = null;   // { stop() }
-  const soundModes = ['off', 'meow', 'strings', 'piano'];
+  const soundModes = ['off', 'smellyCat', 'jingleBells', 'merryChristmas', 'silentNight'];
   let soundIndex = 0;
 
   function ensureAudioCtx(){
@@ -567,99 +549,133 @@
     return audioCtx;
   }
 
-  function startMeow(ctx) {
+  // Helper note frequency converter
+  const N = {
+    C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, Fs4: 369.99, G4: 392.00, A4: 440.00, B4: 493.88,
+    C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77, C6: 1046.50
+  };
+
+  // Helper function to play melodic sequences with custom envelope and timbre
+  function playMelodyLoop(ctx, melody, waveType, gainMax, tempoMs, filterFreq) {
     let isPlaying = true;
+    let step = 0;
     let timer = null;
-    function play() {
-      if(!isPlaying) return;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(380, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(580, ctx.currentTime + 0.35);
-      osc.frequency.exponentialRampToValueAtTime(290, ctx.currentTime + 0.9);
-      gain.gain.setValueAtTime(0.001, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.07, ctx.currentTime + 0.25);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.9);
-      timer = setTimeout(play, 4500 + Math.random() * 3500);
+
+    function playNext() {
+      if (!isPlaying) return;
+      const item = melody[step];
+      if (item && item.freq) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = waveType;
+        osc.frequency.setValueAtTime(item.freq, ctx.currentTime);
+
+        let filter = null;
+        if (filterFreq) {
+          filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = filterFreq;
+        }
+
+        const dur = (item.dur || 1) * (tempoMs / 1000);
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(gainMax, ctx.currentTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur * 1.8);
+
+        if (filter) {
+          osc.connect(filter);
+          filter.connect(gain);
+        } else {
+          osc.connect(gain);
+        }
+        gain.connect(ctx.destination);
+
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + dur * 1.9);
+      }
+
+      const stepDelay = (item && item.dur ? item.dur : 1) * tempoMs;
+      step = (step + 1) % melody.length;
+      timer = setTimeout(playNext, stepDelay);
     }
-    play();
-    return { stop() { isPlaying = false; clearTimeout(timer); } };
-  }
 
-  function startStrings(ctx) {
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const osc3 = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-
-    osc1.type = 'triangle';
-    osc2.type = 'triangle';
-    osc3.type = 'sine';
-    osc1.frequency.value = 196.00;
-    osc2.frequency.value = 246.94;
-    osc3.frequency.value = 293.66;
-
-    filter.type = 'lowpass';
-    filter.frequency.value = 520;
-
-    gain.gain.setValueAtTime(0.001, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 1.5);
-
-    osc1.connect(filter);
-    osc2.connect(filter);
-    osc3.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc1.start();
-    osc2.start();
-    osc3.start();
-
+    playNext();
     return {
       stop() {
-        gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.8);
-        setTimeout(() => {
-          try{ osc1.stop(); osc2.stop(); osc3.stop(); }catch(e){}
-        }, 900);
+        isPlaying = false;
+        clearTimeout(timer);
       }
     };
   }
 
-  function startPiano(ctx) {
-    let isPlaying = true;
-    let timer = null;
-    const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
-    function play() {
-      if(!isPlaying) return;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)], ctx.currentTime);
-      gain.gain.setValueAtTime(0.001, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.5);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 2.5);
-      timer = setTimeout(play, 800 + Math.random() * 1200);
-    }
-    play();
-    return { stop() { isPlaying = false; clearTimeout(timer); } };
+  // 1. Smelly Cat (Acoustic Folk Lullaby)
+  function startSmellyCat(ctx) {
+    const melody = [
+      { freq: N.E4, dur: 1 }, { freq: N.G4, dur: 1 }, { freq: N.A4, dur: 1.5 },
+      { freq: N.G4, dur: 1 }, { freq: N.E4, dur: 2 },
+      { freq: null, dur: 1 },
+      { freq: N.E4, dur: 1 }, { freq: N.G4, dur: 1 }, { freq: N.A4, dur: 1.5 },
+      { freq: N.G4, dur: 1 }, { freq: N.E4, dur: 2.5 },
+      { freq: null, dur: 2 }
+    ];
+    return playMelodyLoop(ctx, melody, 'triangle', 0.08, 420, 750);
   }
 
-  const soundIcons = { off: '🧶', meow: '🐾', strings: '🌾', piano: '🌸' };
+  // 2. Jingle Bells (Music Box Chime)
+  function startJingleBells(ctx) {
+    const melody = [
+      { freq: N.E5, dur: 1 }, { freq: N.E5, dur: 1 }, { freq: N.E5, dur: 2 },
+      { freq: N.E5, dur: 1 }, { freq: N.E5, dur: 1 }, { freq: N.E5, dur: 2 },
+      { freq: N.E5, dur: 1 }, { freq: N.G5, dur: 1 }, { freq: N.C5, dur: 1.5 }, { freq: N.D5, dur: 0.5 },
+      { freq: N.E5, dur: 3 },
+      { freq: null, dur: 2 }
+    ];
+    return playMelodyLoop(ctx, melody, 'sine', 0.07, 360);
+  }
+
+  // 3. We Wish You A Merry Christmas (Soft Holiday Celesta)
+  function startMerryChristmas(ctx) {
+    const melody = [
+      { freq: N.D4, dur: 1 },
+      { freq: N.G4, dur: 1 }, { freq: N.G4, dur: 0.5 }, { freq: N.A4, dur: 0.5 }, { freq: N.G4, dur: 0.5 }, { freq: N.Fs4, dur: 0.5 },
+      { freq: N.E4, dur: 1 }, { freq: N.E4, dur: 1 }, { freq: N.E4, dur: 1 },
+      { freq: N.A4, dur: 1 }, { freq: N.A4, dur: 0.5 }, { freq: N.B4, dur: 0.5 }, { freq: N.A4, dur: 0.5 }, { freq: N.G4, dur: 0.5 },
+      { freq: N.Fs4, dur: 1 }, { freq: N.D4, dur: 1 }, { freq: N.D4, dur: 1 },
+      { freq: null, dur: 2 }
+    ];
+    return playMelodyLoop(ctx, melody, 'sine', 0.06, 380);
+  }
+
+  // 4. Silent Night (Gentle Dream Drone & Chime)
+  function startSilentNight(ctx) {
+    const melody = [
+      { freq: N.G4, dur: 1.5 }, { freq: N.A4, dur: 0.5 }, { freq: N.G4, dur: 1 },
+      { freq: N.E4, dur: 3 },
+      { freq: N.G4, dur: 1.5 }, { freq: N.A4, dur: 0.5 }, { freq: N.G4, dur: 1 },
+      { freq: N.E4, dur: 3 },
+      { freq: N.D5, dur: 2 }, { freq: N.D5, dur: 1 },
+      { freq: N.B4, dur: 3 },
+      { freq: N.C5, dur: 2 }, { freq: N.C5, dur: 1 },
+      { freq: N.G4, dur: 3 },
+      { freq: null, dur: 2.5 }
+    ];
+    return playMelodyLoop(ctx, melody, 'sine', 0.065, 480);
+  }
+
+  const soundIcons = { 
+    off: '🧶', 
+    smellyCat: '🐾', 
+    jingleBells: '❄️', 
+    merryChristmas: '🌾', 
+    silentNight: '🌸' 
+  };
+
   const soundTitles = { 
     off: 'Ambient sound: off', 
-    meow: 'Ambient sound: gentle meow', 
-    strings: 'Ambient sound: soft strings', 
-    piano: 'Ambient sound: soft piano' 
+    smellyCat: 'Ambient sound: Smelly Cat (Lullaby)', 
+    jingleBells: 'Ambient sound: Jingle Bells (Music Box)', 
+    merryChristmas: 'Ambient sound: Merry Christmas (Celesta)', 
+    silentNight: 'Ambient sound: Silent Night (Dreamy)' 
   };
 
   soundBtn.addEventListener('click', () => {
@@ -674,9 +690,10 @@
     const ctx = ensureAudioCtx();
     if(ctx.state === 'suspended') ctx.resume();
 
-    if(mode === 'meow') currentSound = startMeow(ctx);
-    else if(mode === 'strings') currentSound = startStrings(ctx);
-    else if(mode === 'piano') currentSound = startPiano(ctx);
+    if(mode === 'smellyCat') currentSound = startSmellyCat(ctx);
+    else if(mode === 'jingleBells') currentSound = startJingleBells(ctx);
+    else if(mode === 'merryChristmas') currentSound = startMerryChristmas(ctx);
+    else if(mode === 'silentNight') currentSound = startSilentNight(ctx);
   });
 
   /* ---------- initial load ---------- */
