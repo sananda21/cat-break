@@ -272,11 +272,8 @@
   let autoTimer = null;
   let autoOn = false;
 
-  function loadCat(){
-    frame.innerHTML = '<div class="loading">loading a cat…</div>';
+  function showImage(url){
     const img = new Image();
-    // cataas.com = free public "cat as a service" gif endpoint, cache-busted for variety
-    const url = 'https://cataas.com/cat/gif?width=700&t=' + Date.now() + Math.random();
     img.onload = () => {
       frame.innerHTML = '';
       frame.appendChild(img);
@@ -285,8 +282,27 @@
       frame.innerHTML = '<div class="loading">the cats are shy right now, try again 🐾</div>';
     };
     img.src = url;
-    img.alt = 'A random cat gif';
+    img.alt = 'A random cat';
+  }
+
+  async function loadCat(){
+    frame.innerHTML = '<div class="loading">loading a cat…</div>';
     quoteEl.textContent = quotes[Math.floor(Math.random()*quotes.length)];
+
+    // Primary source: The Cat API (no key needed for basic use, reliable uptime)
+    try{
+      const res = await fetch('https://api.thecatapi.com/v1/images/search?t=' + Date.now());
+      if(!res.ok) throw new Error('primary source unavailable');
+      const data = await res.json();
+      if(data && data[0] && data[0].url){
+        showImage(data[0].url);
+        return;
+      }
+      throw new Error('no image in response');
+    } catch(e){
+      // Fallback source: cataas.com, in case the primary is briefly down
+      showImage('https://cataas.com/cat/gif?width=700&t=' + Date.now() + Math.random());
+    }
   }
 
   function toggleAuto(){
