@@ -430,13 +430,14 @@
     ]);
   }
 
-  function preloadImg(url){
+  function preloadImg(url, mediaType){
     return withTimeout(new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
       img.onerror = () => reject(new Error('failed to load'));
       img.src = url;
       img.alt = 'A random cat';
+      if(mediaType) img.dataset.mediaType = mediaType;
     }), 4000);
   }
 
@@ -446,7 +447,7 @@
 
     if (wantsGif) {
       try {
-        return await preloadImg(`https://cataas.com/cat/gif?t=${timestamp}`);
+        return await preloadImg(`https://cataas.com/cat/gif?t=${timestamp}`, 'gif');
       } catch (e) {}
 
       try {
@@ -456,7 +457,7 @@
         );
         const data = await res.json();
         if (data && data[0] && data[0].url) {
-          return await preloadImg(data[0].url);
+          return await preloadImg(data[0].url, 'gif');
         }
       } catch (e) {}
     } else {
@@ -467,23 +468,24 @@
         );
         const data = await res.json();
         if (data && data[0] && data[0].url) {
-          return await preloadImg(data[0].url);
+          return await preloadImg(data[0].url, 'image');
         }
       } catch (e) {}
 
       try {
-        return await preloadImg(`https://cataas.com/cat?t=${timestamp}`);
+        return await preloadImg(`https://cataas.com/cat?t=${timestamp}`, 'image');
       } catch (e) {}
     }
 
     try {
       const backupPool = [
-        'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif',
-        'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=700&auto=format&fit=crop',
-        'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif',
-        'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=700&auto=format&fit=crop'
+        { url: 'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif', type: 'gif' },
+        { url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=700&auto=format&fit=crop', type: 'image' },
+        { url: 'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif', type: 'gif' },
+        { url: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=700&auto=format&fit=crop', type: 'image' }
       ];
-      return await preloadImg(backupPool[Math.floor(Math.random() * backupPool.length)]);
+      const pick = backupPool[Math.floor(Math.random() * backupPool.length)];
+      return await preloadImg(pick.url, pick.type);
     } catch (e) {
       return null;
     }
@@ -532,12 +534,26 @@
     if(autoOn){
       autoBtn.textContent = '⏸ Pause';
       autoBtn.classList.add('active');
-      autoTimer = setInterval(showNextCat, 6000);
+      scheduleNextAuto();
     } else {
       autoBtn.textContent = '▶ Auto-play';
       autoBtn.classList.remove('active');
-      clearInterval(autoTimer);
+      clearTimeout(autoTimer);
     }
+  }
+
+  // Runs the auto-play loop with a delay based on what's currently on screen:
+  // images are quick to take in (2s), gifs get a little longer to play out (3s)
+  async function scheduleNextAuto(){
+    if(!autoOn) return;
+    await showNextCat();
+    if(!autoOn) return;
+
+    const shownImg = frontLayer.querySelector('img');
+    const mediaType = shownImg ? shownImg.dataset.mediaType : 'gif';
+    const delay = mediaType === 'image' ? 2000 : 3000;
+
+    autoTimer = setTimeout(scheduleNextAuto, delay);
   }
 
   nextBtn.addEventListener('click', showNextCat);
