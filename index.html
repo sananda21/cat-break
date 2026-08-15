@@ -430,7 +430,7 @@
     ]);
   }
 
-  function preloadImg(url, mediaType){
+  function preloadImg(url, mediaType, timeoutMs){
     return withTimeout(new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
@@ -438,55 +438,50 @@
       img.src = url;
       img.alt = 'A random cat';
       if(mediaType) img.dataset.mediaType = mediaType;
-    }), 4000);
+    }), timeoutMs || 3500);
   }
 
-  async function fetchCatImage() {
+  // Fetches a cat URL from The Cat API's JSON endpoint, then preloads it.
+  async function fetchViaCatApi(kind, timestamp){
+    const mime = kind === 'gif' ? 'gif' : 'jpg,png';
+    const res = await withTimeout(
+      fetch(`https://api.thecatapi.com/v1/images/search?mime_types=${mime}&limit=1&t=${timestamp}`),
+      3000
+    );
+    const data = await res.json();
+    if(data && data[0] && data[0].url){
+      return await preloadImg(data[0].url, kind, 3500);
+    }
+    throw new Error('no url in response');
+  }
+
+  const backupPool = [
+    { url: 'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif', type: 'gif' },
+    { url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=700&auto=format&fit=crop', type: 'image' },
+    { url: 'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif', type: 'gif' },
+    { url: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=700&auto=format&fit=crop', type: 'image' }
+  ];
+
+  async function fetchCatImage(){
     const wantsGif = Math.random() < 0.5;
     const timestamp = Date.now() + '_' + Math.floor(Math.random() * 1000);
 
-    if (wantsGif) {
-      try {
-        return await preloadImg(`https://cataas.com/cat/gif?t=${timestamp}`, 'gif');
-      } catch (e) {}
+    // Race the primary sources in parallel — whichever resolves first wins,
+    // so a single slow source no longer stalls the whole chain.
+    const candidates = wantsGif
+      ? [ preloadImg(`https://cataas.com/cat/gif?t=${timestamp}`, 'gif', 3500),
+          fetchViaCatApi('gif', timestamp) ]
+      : [ fetchViaCatApi('image', timestamp),
+          preloadImg(`https://cataas.com/cat?t=${timestamp}`, 'image', 3500) ];
 
-      try {
-        const res = await withTimeout(
-          fetch('https://api.thecatapi.com/v1/images/search?mime_types=gif&limit=1&t=' + timestamp),
-          3500
-        );
-        const data = await res.json();
-        if (data && data[0] && data[0].url) {
-          return await preloadImg(data[0].url, 'gif');
-        }
-      } catch (e) {}
-    } else {
-      try {
-        const res = await withTimeout(
-          fetch('https://api.thecatapi.com/v1/images/search?mime_types=jpg,png&limit=1&t=' + timestamp),
-          3500
-        );
-        const data = await res.json();
-        if (data && data[0] && data[0].url) {
-          return await preloadImg(data[0].url, 'image');
-        }
-      } catch (e) {}
+    try{
+      return await Promise.any(candidates);
+    } catch(e){ /* every primary candidate failed or timed out */ }
 
-      try {
-        return await preloadImg(`https://cataas.com/cat?t=${timestamp}`, 'image');
-      } catch (e) {}
-    }
-
-    try {
-      const backupPool = [
-        { url: 'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif', type: 'gif' },
-        { url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=700&auto=format&fit=crop', type: 'image' },
-        { url: 'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif', type: 'gif' },
-        { url: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=700&auto=format&fit=crop', type: 'image' }
-      ];
+    try{
       const pick = backupPool[Math.floor(Math.random() * backupPool.length)];
-      return await preloadImg(pick.url, pick.type);
-    } catch (e) {
+      return await preloadImg(pick.url, pick.type, 3000);
+    } catch(e){
       return null;
     }
   }
