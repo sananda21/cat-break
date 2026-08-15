@@ -122,6 +122,52 @@
     to{ transform: translateY(-10vh) rotate(40deg); }
   }
 
+  /* --- Bottom-Edge Ambient Cats --- */
+  .bottom-cat-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .sleeping-corner-cat {
+    position: absolute;
+    bottom: 4px;
+    left: 20px;
+    opacity: 0.22;
+    transform-origin: bottom center;
+    animation: catBreathe 3.4s ease-in-out infinite;
+  }
+  @keyframes catBreathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04, 0.96); }
+  }
+
+  .cat-tail {
+    transform-origin: 32px 28px;
+    animation: tailWiggle 4s ease-in-out infinite;
+  }
+  @keyframes tailWiggle {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(8deg); }
+  }
+
+  .walking-cat-walker {
+    position: absolute;
+    bottom: 2px;
+    left: -70px;
+    opacity: 0.25;
+    animation: catWalkAcross 38s linear infinite;
+  }
+  @keyframes catWalkAcross {
+    0% { transform: translateX(0); }
+    40%, 100% { transform: translateX(calc(100vw + 90px)); }
+  }
+
   .wrap{
     position: relative;
     z-index: 1;
@@ -205,7 +251,6 @@
     transition: background-color 0.4s ease;
   }
 
-  /* two stacked layers for crossfade — no layout shift, just opacity */
   .layer{
     position: absolute;
     inset: 0;
@@ -335,12 +380,36 @@
     .loading-cat, .zzz{ animation: none; }
     .layer{ transition: none; }
     .fade-in{ animation: none; }
+    .sleeping-corner-cat, .cat-tail, .walking-cat-walker { animation: none; }
   }
 </style>
 </head>
 <body>
 
 <div class="paws" id="paws"></div>
+
+<!-- Bottom Edge Silhouette Cats -->
+<div class="bottom-cat-container">
+  <svg class="sleeping-corner-cat" width="48" height="32" viewBox="0 0 48 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="24" cy="22" rx="18" ry="9"/>
+    <circle cx="34" cy="15" r="7"/>
+    <polygon points="32,9 35,4 37,10"/>
+    <polygon points="37,10 40,6 41,12"/>
+    <path class="cat-tail" d="M8 22 C4 22, 2 15, 6 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </svg>
+
+  <svg class="walking-cat-walker" width="56" height="34" viewBox="0 0 56 34" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="26" cy="18" rx="15" ry="8"/>
+    <circle cx="43" cy="13" r="6"/>
+    <polygon points="41,8 43,4 45,9"/>
+    <polygon points="45,9 47,5 49,10"/>
+    <rect x="16" y="24" width="3.5" height="9" rx="1.5"/>
+    <rect x="22" y="24" width="3.5" height="9" rx="1.5"/>
+    <rect x="31" y="24" width="3.5" height="9" rx="1.5"/>
+    <rect x="36" y="24" width="3.5" height="9" rx="1.5"/>
+    <path d="M12 18 C7 14, 4 9, 8 5" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </svg>
+</div>
 
 <div class="wrap">
   <div class="top-row">
@@ -361,6 +430,7 @@
   <div class="controls">
     <button class="btn-primary" id="nextBtn">🐱 Next cat</button>
     <button class="btn-secondary" id="autoBtn">▶ Auto-play</button>
+    <button class="btn-secondary" id="downloadBtn">💾 Get the cat !</button>
   </div>
 
   <p class="quote" id="quote">breathe in, breathe out, look at the cat</p>
@@ -398,6 +468,7 @@
   const quoteEl = document.getElementById('quote');
   const nextBtn = document.getElementById('nextBtn');
   const autoBtn = document.getElementById('autoBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
   const themeBtn = document.getElementById('themeBtn');
   const soundBtn = document.getElementById('soundBtn');
 
@@ -405,7 +476,8 @@
   let backLayer = layerB;
   let autoTimer = null;
   let autoOn = false;
-  let nextReady = null;   // a promise resolving to a preloaded <img>, ready to show instantly
+  let nextReady = null;
+  let currentImgUrl = null;
 
   const SLEEPING_CAT_SVG = `
     <div class="loading-cat">
@@ -434,11 +506,10 @@
     ]);
   }
 
-  // Resolves to a fully-loaded <img> element (not yet attached to the page)
   function preloadImg(url){
     return withTimeout(new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve(img);
+      img.onload = () => resolve({ img, url });
       img.onerror = () => reject(new Error('failed to load'));
       img.src = url;
       img.alt = 'A random cat';
@@ -446,60 +517,54 @@
   }
 
   async function fetchCatImage() {
-  const wantsGif = Math.random() < 0.5; // ~50% GIFs, 50% high-res photos
-  const timestamp = Date.now() + '_' + Math.floor(Math.random() * 1000);
+    const wantsGif = Math.random() < 0.5;
+    const timestamp = Date.now() + '_' + Math.floor(Math.random() * 1000);
 
-  if (wantsGif) {
-    // 1. Try animated GIF from Cataas (no width parameter so full animation is preserved)
-    try {
-      return await preloadImg(`https://cataas.com/cat/gif?t=${timestamp}`);
-    } catch (e) {}
+    if (wantsGif) {
+      try {
+        return await preloadImg(`https://cataas.com/cat/gif?t=${timestamp}`);
+      } catch (e) {}
 
-    // 2. Try GIF from The Cat API
-    try {
-      const res = await withTimeout(
-        fetch('https://api.thecatapi.com/v1/images/search?mime_types=gif&limit=1&t=' + timestamp),
-        3500
-      );
-      const data = await res.json();
-      if (data && data[0] && data[0].url) {
-        return await preloadImg(data[0].url);
-      }
-    } catch (e) {}
-  } else {
-    // 1. Try static photo from The Cat API (fast & diverse breeds)
-    try {
-      const res = await withTimeout(
-        fetch('https://api.thecatapi.com/v1/images/search?mime_types=jpg,png&limit=1&t=' + timestamp),
-        3500
-      );
-      const data = await res.json();
-      if (data && data[0] && data[0].url) {
-        return await preloadImg(data[0].url);
-      }
-    } catch (e) {}
+      try {
+        const res = await withTimeout(
+          fetch('https://api.thecatapi.com/v1/images/search?mime_types=gif&limit=1&t=' + timestamp),
+          3500
+        );
+        const data = await res.json();
+        if (data && data[0] && data[0].url) {
+          return await preloadImg(data[0].url);
+        }
+      } catch (e) {}
+    } else {
+      try {
+        const res = await withTimeout(
+          fetch('https://api.thecatapi.com/v1/images/search?mime_types=jpg,png&limit=1&t=' + timestamp),
+          3500
+        );
+        const data = await res.json();
+        if (data && data[0] && data[0].url) {
+          return await preloadImg(data[0].url);
+        }
+      } catch (e) {}
 
-    // 2. Try static photo from Cataas
+      try {
+        return await preloadImg(`https://cataas.com/cat?t=${timestamp}`);
+      } catch (e) {}
+    }
+
     try {
-      return await preloadImg(`https://cataas.com/cat?t=${timestamp}`);
-    } catch (e) {}
+      const backupPool = [
+        'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif',
+        'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=700&auto=format&fit=crop',
+        'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif',
+        'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=700&auto=format&fit=crop'
+      ];
+      return await preloadImg(backupPool[Math.floor(Math.random() * backupPool.length)]);
+    } catch (e) {
+      return null;
+    }
   }
 
-  // Guaranteed fast CDN fallback (mix of GIF & photo) if public endpoints stall
-  try {
-    const backupPool = [
-      'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif',
-      'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=700&auto=format&fit=crop',
-      'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif',
-      'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=700&auto=format&fit=crop'
-    ];
-    return await preloadImg(backupPool[Math.floor(Math.random() * backupPool.length)]);
-  } catch (e) {
-    return null;
-  }
-}
-
-  // Kicks off a background fetch for the *next* cat, cached in `nextReady`
   function prefetchNext(){
     nextReady = fetchCatImage();
   }
@@ -507,11 +572,9 @@
   async function showNextCat(){
     quoteEl.textContent = quotes[Math.floor(Math.random()*quotes.length)];
 
-    // Use the preloaded cat if it's ready; otherwise fetch on the spot
     let imgPromise = nextReady || fetchCatImage();
     nextReady = null;
 
-    // Only show the sleeping-cat loader if nothing was preloaded and it's taking a moment
     const loaderTimer = setTimeout(() => {
       backLayer.innerHTML = SLEEPING_CAT_SVG;
       backLayer.classList.add('visible');
@@ -519,10 +582,10 @@
       [frontLayer, backLayer] = [backLayer, frontLayer];
     }, 250);
 
-    const img = await imgPromise;
+    const result = await imgPromise;
     clearTimeout(loaderTimer);
 
-    if(!img){
+    if(!result || !result.img){
       frontLayer.innerHTML = SLEEPING_CAT_SVG.replace('tucking in a cat…', 'cats are napping — try again soon');
       frontLayer.classList.add('visible');
       backLayer.classList.remove('visible');
@@ -530,15 +593,46 @@
       return;
     }
 
-    img.classList.add('fade-in');
+    currentImgUrl = result.url;
+    result.img.classList.add('fade-in');
     backLayer.innerHTML = '';
-    backLayer.appendChild(img);
+    backLayer.appendChild(result.img);
     backLayer.classList.add('visible');
     frontLayer.classList.remove('visible');
     [frontLayer, backLayer] = [backLayer, frontLayer];
 
-    // start loading the *next* cat immediately, in the background
     prefetchNext();
+  }
+
+  // --- Download Current Cat Image ---
+  async function downloadCurrentCat() {
+    if (!currentImgUrl) return;
+    try {
+      downloadBtn.textContent = '🐾 Grabbing...';
+      const response = await fetch(currentImgUrl);
+      const blob = await response.blob();
+      
+      let ext = 'jpg';
+      if (blob.type.includes('gif')) ext = 'gif';
+      else if (blob.type.includes('png')) ext = 'png';
+      else if (blob.type.includes('webp')) ext = 'webp';
+      else if (currentImgUrl.includes('.gif')) ext = 'gif';
+
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `cat-break-${Date.now()}.${ext}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+
+      downloadBtn.textContent = '✨ Saved!';
+      setTimeout(() => { downloadBtn.textContent = '💾 Get the cat !'; }, 1800);
+    } catch (err) {
+      window.open(currentImgUrl, '_blank');
+      downloadBtn.textContent = '💾 Get the cat !';
+    }
   }
 
   function toggleAuto(){
@@ -556,6 +650,7 @@
 
   nextBtn.addEventListener('click', showNextCat);
   autoBtn.addEventListener('click', toggleAuto);
+  downloadBtn.addEventListener('click', downloadCurrentCat);
 
   /* ---------- theme switcher ---------- */
   const themes = [
@@ -575,7 +670,7 @@
 
   /* ---------- ambient audio (Melodies) ---------- */
   let audioCtx = null;
-  let currentSound = null;   // { stop() }
+  let currentSound = null;
   const soundModes = ['off', 'smellyCat', 'jingleBells', 'merryChristmas', 'silentNight'];
   let soundIndex = 0;
 
@@ -586,13 +681,11 @@
     return audioCtx;
   }
 
-  // Helper note frequency converter
   const N = {
     C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, Fs4: 369.99, G4: 392.00, A4: 440.00, B4: 493.88,
     C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77, C6: 1046.50
   };
 
-  // Helper function to play melodic sequences with custom envelope and timbre
   function playMelodyLoop(ctx, melody, waveType, gainMax, tempoMs, filterFreq) {
     let isPlaying = true;
     let step = 0;
@@ -645,7 +738,6 @@
     };
   }
 
-  // 1. Smelly Cat (Acoustic Folk Lullaby)
   function startSmellyCat(ctx) {
     const melody = [
       { freq: N.E4, dur: 1 }, { freq: N.G4, dur: 1 }, { freq: N.A4, dur: 1.5 },
@@ -658,7 +750,6 @@
     return playMelodyLoop(ctx, melody, 'triangle', 0.08, 420, 750);
   }
 
-  // 2. Jingle Bells (Music Box Chime)
   function startJingleBells(ctx) {
     const melody = [
       { freq: N.E5, dur: 1 }, { freq: N.E5, dur: 1 }, { freq: N.E5, dur: 2 },
@@ -670,7 +761,6 @@
     return playMelodyLoop(ctx, melody, 'sine', 0.07, 360);
   }
 
-  // 3. We Wish You A Merry Christmas (Soft Holiday Celesta)
   function startMerryChristmas(ctx) {
     const melody = [
       { freq: N.D4, dur: 1 },
@@ -683,7 +773,6 @@
     return playMelodyLoop(ctx, melody, 'sine', 0.06, 380);
   }
 
-  // 4. Silent Night (Gentle Dream Drone & Chime)
   function startSilentNight(ctx) {
     const melody = [
       { freq: N.G4, dur: 1.5 }, { freq: N.A4, dur: 0.5 }, { freq: N.G4, dur: 1 },
