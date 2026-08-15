@@ -401,7 +401,8 @@
   let backLayer = layerB;
   let autoTimer = null;
   let autoOn = false;
-  let nextReady = null;
+  let catQueue = [];        // holds promises for cats that are pre-fetching or ready
+  const QUEUE_TARGET = 2;   // keep this many buffered at all times
 
   const SLEEPING_CAT_SVG = `
     <div class="loading-cat">
@@ -486,15 +487,18 @@
     }
   }
 
-  function prefetchNext(){
-    nextReady = fetchCatImage();
+  function topUpQueue(){
+    while(catQueue.length < QUEUE_TARGET){
+      catQueue.push(fetchCatImage());
+    }
   }
 
   async function showNextCat(){
     quoteEl.textContent = quotes[Math.floor(Math.random()*quotes.length)];
 
-    let imgPromise = nextReady || fetchCatImage();
-    nextReady = null;
+    // Pull the oldest buffered cat (already fetching, maybe already done)
+    let imgPromise = catQueue.shift() || fetchCatImage();
+    topUpQueue();   // immediately backfill the buffer in the background
 
     const loaderTimer = setTimeout(() => {
       backLayer.innerHTML = SLEEPING_CAT_SVG;
@@ -510,7 +514,7 @@
       frontLayer.innerHTML = SLEEPING_CAT_SVG.replace('tucking in a cat…', 'cats are napping — try again soon');
       frontLayer.classList.add('visible');
       backLayer.classList.remove('visible');
-      prefetchNext();
+      topUpQueue();
       return;
     }
 
@@ -520,8 +524,6 @@
     backLayer.classList.add('visible');
     frontLayer.classList.remove('visible');
     [frontLayer, backLayer] = [backLayer, frontLayer];
-
-    prefetchNext();
   }
 
   function toggleAuto(){
@@ -546,7 +548,7 @@
 
     const shownImg = frontLayer.querySelector('img');
     const mediaType = shownImg ? shownImg.dataset.mediaType : 'gif';
-    const delay = mediaType === 'image' ? 2000 : 3000;
+    const delay = mediaType === 'image' ? 2500 : 4000;
 
     autoTimer = setTimeout(scheduleNextAuto, delay);
   }
@@ -725,6 +727,7 @@
   });
 
   /* ---------- initial load ---------- */
+  topUpQueue();
   showNextCat();
 </script>
 
