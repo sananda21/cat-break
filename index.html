@@ -80,7 +80,6 @@
     padding: 0;
     min-height: 100vh;
     background-color: var(--linen);
-    /* Gingham / Windowpane Check Texture layered with cozy gradients */
     background-image:
       linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
       linear-gradient(var(--grid-line) 1px, transparent 1px),
@@ -197,6 +196,7 @@
     transition: background-color 0.4s ease;
   }
 
+  /* two stacked layers for crossfade — no layout shift, just opacity */
   .layer{
     position: absolute;
     inset: 0;
@@ -215,13 +215,12 @@
     filter: saturate(0.92) brightness(1.02);
   }
 
-  /* Fade in class for soft transition */
   .fade-in {
     animation: fadeIn 0.5s ease-in forwards;
   }
   @keyframes fadeIn {
-    0% { opacity: 0; transform: scale(0.985); }
-    100% { opacity: 1; transform: scale(1); }
+    0% { opacity: 0; }
+    100% { opacity: 1; }
   }
 
   .loading-cat{
@@ -343,7 +342,7 @@
     .paw{ animation: none; display: none; }
     .loading-cat, .zzz{ animation: none; }
     .layer{ transition: none; }
-    .fade-in{ animation: none; opacity: 1; }
+    .fade-in{ animation: none; }
   }
 </style>
 </head>
@@ -415,13 +414,13 @@
   let backLayer = layerB;
   let autoTimer = null;
   let autoOn = false;
-  let nextReady = null;
+  let nextReady = null;   // a promise resolving to a preloaded <img>, ready to show instantly
 
   const SLEEPING_CAT_SVG = `
     <div class="loading-cat">
       <svg viewBox="0 0 160 110" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="80" cy="88" rx="58" ry="10" fill="#D9CBB4" opacity="0.4"/>
-        <path d="M25 70 C15 45, 35 20, 65 22 C60 12, 72 6, 80 12 C88 6, 100 12, 95 22 C125 20, 145 45, 135 70 Z" fill="#C99A44" opacity="0.9"/>
+        <path d="M25 70 C15 45, 35 20, 65 22 C60 12, 72 6, 80 12 C88 6, 100 12, 95 22 C125 20, 145 45, 135 70 C145 78, 140 92, 125 92 L35 92 C20 92, 15 78, 25 70 Z" fill="#C99A44" opacity="0.9"/>
         <path d="M45 26 L38 8 L58 24 Z" fill="#C99A44"/>
         <path d="M115 26 L122 8 L102 24 Z" fill="#C99A44"/>
         <path d="M45 26 L41 14 L54 23 Z" fill="#C98F8F"/>
@@ -444,6 +443,7 @@
     ]);
   }
 
+  // Resolves to a fully-loaded <img> element (not yet attached to the page)
   function preloadImg(url){
     return withTimeout(new Promise((resolve, reject) => {
       const img = new Image();
@@ -454,6 +454,7 @@
     }), 4000);
   }
 
+  // Tries The Cat API (gifs only), then cataas.com, and resolves a loaded <img> or null
   async function fetchCatImage(){
     try{
       const res = await withTimeout(fetch('https://api.thecatapi.com/v1/images/search?mime_types=gif&t=' + Date.now()), 3500);
@@ -461,15 +462,16 @@
       if(data && data[0] && data[0].url){
         return await preloadImg(data[0].url);
       }
-    } catch(e){ }
+    } catch(e){ /* try next source */ }
 
     try{
       return await preloadImg('https://cataas.com/cat/gif?width=700&t=' + Date.now() + Math.random());
-    } catch(e){ }
+    } catch(e){ /* both sources failed */ }
 
     return null;
   }
 
+  // Kicks off a background fetch for the *next* cat, cached in `nextReady`
   function prefetchNext(){
     nextReady = fetchCatImage();
   }
@@ -477,9 +479,11 @@
   async function showNextCat(){
     quoteEl.textContent = quotes[Math.floor(Math.random()*quotes.length)];
 
+    // Use the preloaded cat if it's ready; otherwise fetch on the spot
     let imgPromise = nextReady || fetchCatImage();
     nextReady = null;
 
+    // Only show the sleeping-cat loader if nothing was preloaded and it's taking a moment
     const loaderTimer = setTimeout(() => {
       backLayer.innerHTML = SLEEPING_CAT_SVG;
       backLayer.classList.add('visible');
@@ -499,13 +503,13 @@
     }
 
     img.classList.add('fade-in');
-    
     backLayer.innerHTML = '';
     backLayer.appendChild(img);
     backLayer.classList.add('visible');
     frontLayer.classList.remove('visible');
     [frontLayer, backLayer] = [backLayer, frontLayer];
 
+    // start loading the *next* cat immediately, in the background
     prefetchNext();
   }
 
@@ -543,7 +547,7 @@
 
   /* ---------- ambient audio ---------- */
   let audioCtx = null;
-  let currentSound = null;
+  let currentSound = null;   // { stop() }
   const soundModes = ['off', 'meow', 'strings', 'piano'];
   let soundIndex = 0;
 
@@ -556,99 +560,91 @@
 
   function startMeow(ctx) {
     let isPlaying = true;
-    function playMeow() {
+    let timer = null;
+    function play() {
       if(!isPlaying) return;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = 'sine'; 
-      
-      osc.frequency.setValueAtTime(400, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.4);
-      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 1.0);
-      
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.3);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0);
-      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(380, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(580, ctx.currentTime + 0.35);
+      osc.frequency.exponentialRampToValueAtTime(290, ctx.currentTime + 0.9);
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.07, ctx.currentTime + 0.25);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 1.0);
-      
-      setTimeout(playMeow, 4000 + Math.random() * 4000); 
+      osc.stop(ctx.currentTime + 0.9);
+      timer = setTimeout(play, 4500 + Math.random() * 3500);
     }
-    playMeow();
-    return { stop() { isPlaying = false; } };
+    play();
+    return { stop() { isPlaying = false; clearTimeout(timer); } };
   }
 
   function startStrings(ctx) {
     const osc1 = ctx.createOscillator();
     const osc2 = ctx.createOscillator();
     const osc3 = ctx.createOscillator();
-    
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
     osc1.type = 'triangle';
     osc2.type = 'triangle';
     osc3.type = 'sine';
-    
-    osc1.frequency.value = 196.00; // G3
-    osc2.frequency.value = 246.94; // B3
-    osc3.frequency.value = 293.66; // D4
-    
-    const filter = ctx.createBiquadFilter();
+    osc1.frequency.value = 196.00;
+    osc2.frequency.value = 246.94;
+    osc3.frequency.value = 293.66;
+
     filter.type = 'lowpass';
-    filter.frequency.value = 600;
-    
-    const gain = ctx.createGain();
-    gain.gain.value = 0;
-    gain.gain.setTargetAtTime(0.06, ctx.currentTime, 2); 
-    
+    filter.frequency.value = 520;
+
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 1.5);
+
     osc1.connect(filter);
     osc2.connect(filter);
     osc3.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
-    
+
     osc1.start();
     osc2.start();
     osc3.start();
-    
+
     return {
       stop() {
-        gain.gain.setTargetAtTime(0, ctx.currentTime, 1);
-        setTimeout(() => { osc1.stop(); osc2.stop(); osc3.stop(); }, 2000);
+        gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+        setTimeout(() => {
+          try{ osc1.stop(); osc2.stop(); osc3.stop(); }catch(e){}
+        }, 900);
       }
     };
   }
 
   function startPiano(ctx) {
     let isPlaying = true;
+    let timer = null;
     const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
-    
-    function playNote() {
+    function play() {
       if(!isPlaying) return;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
-      
-      const note = notes[Math.floor(Math.random() * notes.length)];
-      osc.frequency.setValueAtTime(note, ctx.currentTime);
-      
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 3);
-      
+      osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)], ctx.currentTime);
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.5);
       osc.connect(gain);
       gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 3);
-      
-      setTimeout(playNote, 600 + Math.random() * 800);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 2.5);
+      timer = setTimeout(play, 800 + Math.random() * 1200);
     }
-    playNote();
-    return { stop() { isPlaying = false; } };
+    play();
+    return { stop() { isPlaying = false; clearTimeout(timer); } };
   }
 
-  /* Set A Cute & Whimsical Icons */
   const soundIcons = { off: '🧶', meow: '🐾', strings: '🌾', piano: '🌸' };
   const soundTitles = { 
     off: 'Ambient sound: off', 
@@ -668,7 +664,7 @@
     if(mode === 'off') return;
     const ctx = ensureAudioCtx();
     if(ctx.state === 'suspended') ctx.resume();
-    
+
     if(mode === 'meow') currentSound = startMeow(ctx);
     else if(mode === 'strings') currentSound = startStrings(ctx);
     else if(mode === 'piano') currentSound = startPiano(ctx);
