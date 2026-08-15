@@ -3,6 +3,7 @@
 A small, cozy webpage for looking at cats for a minute. Built to be simple, calming, and require nothing but a browser.
 
 **Live site:** https://sananda21.github.io/cat-break/
+Also available at https://cat-break.netlify.app/
 
 ## What it does
 
@@ -47,10 +48,6 @@ git push
 
 GitHub Pages picks up the change automatically within a minute or two.
 
-## Roadmap
-
-- [ ] Add ambient/purring background music with a mute toggle
-- [ ] Maybe: swap in Tenor GIF search for mood-based cats (e.g. "sleepy cat")
 
 ## License
 
