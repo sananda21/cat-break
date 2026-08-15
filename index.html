@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="cozy">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,13 +9,64 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --linen: #EBE1D2;      /* warm linen background */
-    --card: #FFFBF3;       /* candlelit card white */
-    --coffee: #4A3F35;     /* deep coffee ink */
-    --sage: #7C8A6B;       /* muted sage */
-    --rose: #C98F8F;       /* dusty rose */
-    --honey: #C99A44;      /* soft honey amber */
+    --linen: #EBE1D2;
+    --card: #FFFBF3;
+    --coffee: #4A3F35;
+    --sage: #7C8A6B;
+    --rose: #C98F8F;
+    --honey: #C99A44;
     --shadow: #D9CBB4;
+    --muted: #8a7c6a;
+    --btn-primary-shadow: #a86d6d;
+    --btn-secondary-active-shadow: #5f6b51;
+    --grad-a: rgba(201,143,143,0.12);
+    --grad-b: rgba(124,138,107,0.14);
+  }
+
+  /* Dark cozy — for night use / headaches */
+  [data-theme="dark"]{
+    --linen: #241F26;
+    --card: #2E2831;
+    --coffee: #F1E7DA;
+    --sage: #8FA37D;
+    --rose: #D99BA0;
+    --honey: #D9A85B;
+    --shadow: #17131A;
+    --muted: #b6a99c;
+    --btn-primary-shadow: #7d4a4f;
+    --btn-secondary-active-shadow: #3d4a34;
+    --grad-a: rgba(217,155,160,0.10);
+    --grad-b: rgba(143,163,125,0.12);
+  }
+
+  /* Soft lavender */
+  [data-theme="lavender"]{
+    --linen: #EDE7F6;
+    --card: #FBF9FF;
+    --coffee: #453E52;
+    --sage: #9686B8;
+    --rose: #C9A8D9;
+    --honey: #B39DDB;
+    --shadow: #D8CCEC;
+    --muted: #8b7fa3;
+    --btn-primary-shadow: #9678a8;
+    --btn-secondary-active-shadow: #7d6a99;
+    --grad-a: rgba(201,168,217,0.14);
+    --grad-b: rgba(150,134,184,0.14);
+  }
+
+  /* Soft matcha */
+  [data-theme="matcha"]{
+    --linen: #E7EEE1;
+    --card: #FAFBF6;
+    --coffee: #3E4A3A;
+    --sage: #8CA37C;
+    --rose: #C7B27E;
+    --honey: #A9B96B;
+    --shadow: #D3E0C8;
+    --muted: #7c8a72;
+    --btn-primary-shadow: #8a9968;
+    --btn-secondary-active-shadow: #6d8060;
   }
 
   *{ box-sizing: border-box; }
@@ -26,14 +77,14 @@
     min-height: 100vh;
     background: var(--linen);
     background-image:
-      radial-gradient(ellipse at 15% 10%, rgba(201,143,143,0.12), transparent 45%),
-      radial-gradient(ellipse at 85% 90%, rgba(124,138,107,0.14), transparent 50%);
+      radial-gradient(ellipse at 15% 10%, var(--grad-a), transparent 45%),
+      radial-gradient(ellipse at 85% 90%, var(--grad-b), transparent 50%);
     font-family: 'Karla', sans-serif;
     color: var(--coffee);
     overflow-x: hidden;
+    transition: background-color 0.4s ease, color 0.4s ease;
   }
 
-  /* floating paw prints, ambient background */
   .paws{
     position: fixed;
     inset: 0;
@@ -65,6 +116,32 @@
     text-align: center;
   }
 
+  .top-row{
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .icon-btn{
+    background: var(--card);
+    color: var(--coffee);
+    border: none;
+    border-radius: 999px;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--shadow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.4s ease;
+  }
+  .icon-btn:hover{ transform: translateY(-2px); }
+  .icon-btn:active{ transform: translateY(2px); box-shadow: 0 1px 0 var(--shadow); }
+  .icon-btn.active{ background: var(--sage); color: var(--card); }
+
   h1{
     font-family: 'Fraunces', serif;
     font-optical-sizing: auto;
@@ -84,12 +161,11 @@
   .subtitle{
     font-size: 1.02rem;
     font-weight: 500;
-    color: #8a7c6a;
+    color: var(--muted);
     margin: 0 0 32px;
     letter-spacing: 0.2px;
   }
 
-  /* the stage */
   .stage{
     position: relative;
     width: 100%;
@@ -98,7 +174,8 @@
     border-radius: 28px;
     background: linear-gradient(135deg, var(--sage), var(--honey));
     padding: 10px;
-    box-shadow: 0 16px 0 var(--shadow), 0 22px 38px rgba(74,63,53,0.18);
+    box-shadow: 0 16px 0 var(--shadow), 0 22px 38px rgba(0,0,0,0.18);
+    transition: background 0.4s ease;
   }
   .frame{
     width: 100%;
@@ -106,27 +183,63 @@
     border-radius: 20px;
     overflow: hidden;
     background: var(--card);
+    position: relative;
+    transition: background-color 0.4s ease;
+  }
+
+  /* two stacked layers for crossfade — no layout shift, just opacity */
+  .layer{
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
+    opacity: 0;
+    transition: opacity 0.6s ease;
   }
-  .frame img{
+  .layer.visible{ opacity: 1; z-index: 2; }
+  .layer img{
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    animation: pop-in 0.4s ease;
+    filter: saturate(0.92) brightness(1.02);
   }
-  @keyframes pop-in{
-    from{ opacity: 0; transform: scale(0.96); }
-    to{ opacity: 1; transform: scale(1); }
+
+  .loading-cat{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    animation: breathe 2.6s ease-in-out infinite;
   }
-  .loading{
+  @keyframes breathe{
+    0%, 100%{ transform: scale(1); opacity: 0.85; }
+    50%{ transform: scale(1.035); opacity: 1; }
+  }
+  .loading-cat svg{ width: 130px; height: auto; display: block; }
+  .loading-label{
     font-family: 'Fraunces', serif;
     font-style: italic;
-    font-size: 1.3rem;
-    color: var(--honey);
+    font-size: 1rem;
+    color: var(--muted);
+  }
+  .zzz{
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 600;
+    fill: var(--honey);
+    animation: floatz 2.6s ease-in-out infinite;
+    opacity: 0;
+  }
+  .zzz.z1{ animation-delay: 0s; }
+  .zzz.z2{ animation-delay: 0.4s; }
+  .zzz.z3{ animation-delay: 0.8s; }
+  @keyframes floatz{
+    0%{ opacity: 0; transform: translate(0,0); }
+    20%{ opacity: 0.9; }
+    80%{ opacity: 0.4; }
+    100%{ opacity: 0; transform: translate(6px,-14px); }
   }
 
   .badge{
@@ -141,10 +254,11 @@
     font-size: 0.85rem;
     padding: 6px 14px;
     border-radius: 999px;
-    box-shadow: 0 3px 0 rgba(74,63,53,0.12);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.12);
+    z-index: 3;
+    transition: background-color 0.4s ease;
   }
 
-  /* controls */
   .controls{
     margin-top: 28px;
     display: flex;
@@ -162,17 +276,17 @@
     cursor: pointer;
     border-radius: 999px;
     padding: 14px 26px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.4s ease, color 0.4s ease;
   }
   button:active{ transform: translateY(3px); }
 
   .btn-primary{
     background: var(--rose);
     color: var(--card);
-    box-shadow: 0 5px 0 #a86d6d;
+    box-shadow: 0 5px 0 var(--btn-primary-shadow);
   }
-  .btn-primary:hover{ transform: translateY(-2px); box-shadow: 0 7px 0 #a86d6d; }
-  .btn-primary:active{ box-shadow: 0 2px 0 #a86d6d; transform: translateY(3px); }
+  .btn-primary:hover{ transform: translateY(-2px); box-shadow: 0 7px 0 var(--btn-primary-shadow); }
+  .btn-primary:active{ box-shadow: 0 2px 0 var(--btn-primary-shadow); transform: translateY(3px); }
 
   .btn-secondary{
     background: var(--card);
@@ -183,7 +297,7 @@
   .btn-secondary.active{
     background: var(--sage);
     color: var(--card);
-    box-shadow: 0 5px 0 #5f6b51;
+    box-shadow: 0 5px 0 var(--btn-secondary-active-shadow);
   }
 
   .quote{
@@ -203,13 +317,14 @@
   footer{
     margin-top: 40px;
     font-size: 0.85rem;
-    color: #a4977f;
+    color: var(--muted);
     font-weight: 600;
   }
 
   @media (prefers-reduced-motion: reduce){
     .paw{ animation: none; display: none; }
-    .frame img{ animation: none; }
+    .loading-cat, .zzz{ animation: none; }
+    .layer{ transition: none; }
   }
 </style>
 </head>
@@ -218,12 +333,18 @@
 <div class="paws" id="paws"></div>
 
 <div class="wrap">
+  <div class="top-row">
+    <button class="icon-btn" id="soundBtn" title="Ambient sound: off">🔇</button>
+    <button class="icon-btn" id="themeBtn" title="Change theme">🎨</button>
+  </div>
+
   <h1>Cat Break <span class="hi">🐾</span></h1>
   <p class="subtitle">a small, soft place to look at cats for a minute</p>
 
   <div class="stage">
     <div class="frame" id="frame">
-      <div class="loading">loading a cat…</div>
+      <div class="layer visible" id="layerA"></div>
+      <div class="layer" id="layerB"></div>
     </div>
     <div class="badge" id="badge">GIF</div>
   </div>
@@ -239,10 +360,9 @@
 </div>
 
 <script>
-  // ambient floating paw prints
+  /* ---------- ambient paw prints ---------- */
   const pawsContainer = document.getElementById('paws');
-  const pawCount = 10;
-  for(let i=0;i<pawCount;i++){
+  for(let i=0;i<10;i++){
     const p = document.createElement('div');
     p.className = 'paw';
     p.textContent = '🐾';
@@ -264,45 +384,114 @@
     "a little chaos, a little comfort"
   ];
 
-  const frame = document.getElementById('frame');
+  const layerA = document.getElementById('layerA');
+  const layerB = document.getElementById('layerB');
   const quoteEl = document.getElementById('quote');
   const nextBtn = document.getElementById('nextBtn');
   const autoBtn = document.getElementById('autoBtn');
+  const themeBtn = document.getElementById('themeBtn');
+  const soundBtn = document.getElementById('soundBtn');
 
+  let frontLayer = layerA;
+  let backLayer = layerB;
   let autoTimer = null;
   let autoOn = false;
+  let nextReady = null;   // a promise resolving to a preloaded <img>, ready to show instantly
 
-  function showImage(url){
-    const img = new Image();
-    img.onload = () => {
-      frame.innerHTML = '';
-      frame.appendChild(img);
-    };
-    img.onerror = () => {
-      frame.innerHTML = '<div class="loading">the cats are shy right now, try again 🐾</div>';
-    };
-    img.src = url;
-    img.alt = 'A random cat';
+  const SLEEPING_CAT_SVG = `
+    <div class="loading-cat">
+      <svg viewBox="0 0 160 110" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="80" cy="88" rx="58" ry="10" fill="#D9CBB4" opacity="0.4"/>
+        <path d="M25 70 C15 45, 35 20, 65 22 C60 12, 72 6, 80 12 C88 6, 100 12, 95 22 C125 20, 145 45, 135 70 C145 78, 140 92, 125 92 L35 92 C20 92, 15 78, 25 70 Z" fill="#C99A44" opacity="0.9"/>
+        <path d="M45 26 L38 8 L58 24 Z" fill="#C99A44"/>
+        <path d="M115 26 L122 8 L102 24 Z" fill="#C99A44"/>
+        <path d="M45 26 L41 14 L54 23 Z" fill="#C98F8F"/>
+        <path d="M115 26 L119 14 L106 23 Z" fill="#C98F8F"/>
+        <path d="M52 55 Q60 50 68 55" stroke="#4A3F35" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M92 55 Q100 50 108 55" stroke="#4A3F35" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M76 62 Q80 66 84 62" stroke="#4A3F35" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M125 60 C142 58, 150 72, 138 82 C130 88, 118 84, 118 74 Z" fill="#C99A44" opacity="0.9"/>
+        <text x="118" y="30" class="zzz z1" font-size="14">z</text>
+        <text x="126" y="20" class="zzz z2" font-size="18">z</text>
+        <text x="136" y="8" class="zzz z3" font-size="22">z</text>
+      </svg>
+      <div class="loading-label">tucking in a cat…</div>
+    </div>`;
+
+  function withTimeout(promise, ms){
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+    ]);
   }
 
-  async function loadCat(){
-    frame.innerHTML = '<div class="loading">loading a cat…</div>';
-    quoteEl.textContent = quotes[Math.floor(Math.random()*quotes.length)];
+  // Resolves to a fully-loaded <img> element (not yet attached to the page)
+  function preloadImg(url){
+    return withTimeout(new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('failed to load'));
+      img.src = url;
+      img.alt = 'A random cat';
+    }), 4000);
+  }
 
-    // Primary source: The Cat API (no key needed for basic use, reliable uptime)
+  // Tries The Cat API (gifs only), then cataas.com, and resolves a loaded <img> or null
+  async function fetchCatImage(){
     try{
-      const res = await fetch('https://api.thecatapi.com/v1/images/search?t=' + Date.now());
-      if(!res.ok) throw new Error('primary source unavailable');
+      const res = await withTimeout(fetch('https://api.thecatapi.com/v1/images/search?mime_types=gif&t=' + Date.now()), 3500);
       const data = await res.json();
       if(data && data[0] && data[0].url){
-        showImage(data[0].url);
-        return;
+        return await preloadImg(data[0].url);
       }
-      throw new Error('no image in response');
-    } catch(e){
-      // Fallback source: cataas.com, in case the primary is briefly down
-      showImage('https://cataas.com/cat/gif?width=700&t=' + Date.now() + Math.random());
+    } catch(e){ /* try next source */ }
+
+    try{
+      return await preloadImg('https://cataas.com/cat/gif?width=700&t=' + Date.now() + Math.random());
+    } catch(e){ /* both sources failed */ }
+
+    return null;
+  }
+
+  // Kicks off a background fetch for the *next* cat, cached in `nextReady`
+  function prefetchNext(){
+    nextReady = fetchCatImage();
+  }
+
+  async function showNextCat(){
+    quoteEl.textContent = quotes[Math.floor(Math.random()*quotes.length)];
+
+    // Use the preloaded cat if it's ready; otherwise fetch on the spot
+    let imgPromise = nextReady || fetchCatImage();
+    nextReady = null;
+
+    // Only show the sleeping-cat loader if nothing was preloaded and it's taking a moment
+    const loaderTimer = setTimeout(() => {
+      backLayer.innerHTML = SLEEPING_CAT_SVG;
+      backLayer.classList.add('visible');
+      frontLayer.classList.remove('visible');
+      [frontLayer, backLayer] = [backLayer, frontLayer];
+    }, 250);
+
+    const img = await imgPromise;
+    clearTimeout(loaderTimer);
+
+    if(!img){
+      frontLayer.innerHTML = SLEEPING_CAT_SVG.replace('tucking in a cat…', 'cats are napping — try again soon');
+      frontLayer.classList.add('visible');
+      backLayer.classList.remove('visible');
+      prefetchNext();
+      return;
     }
+
+    backLayer.innerHTML = '';
+    backLayer.appendChild(img);
+    backLayer.classList.add('visible');
+    frontLayer.classList.remove('visible');
+    [frontLayer, backLayer] = [backLayer, frontLayer];
+
+    // start loading the *next* cat immediately, in the background
+    prefetchNext();
   }
 
   function toggleAuto(){
@@ -310,7 +499,7 @@
     if(autoOn){
       autoBtn.textContent = '⏸ Pause';
       autoBtn.classList.add('active');
-      autoTimer = setInterval(loadCat, 6000);
+      autoTimer = setInterval(showNextCat, 6000);
     } else {
       autoBtn.textContent = '▶ Auto-play';
       autoBtn.classList.remove('active');
@@ -318,10 +507,119 @@
     }
   }
 
-  nextBtn.addEventListener('click', loadCat);
+  nextBtn.addEventListener('click', showNextCat);
   autoBtn.addEventListener('click', toggleAuto);
 
-  loadCat();
+  /* ---------- theme switcher ---------- */
+  const themes = [
+    { key: 'cozy',     icon: '🎨', label: 'Cozy linen' },
+    { key: 'dark',     icon: '🌙', label: 'Dark cozy' },
+    { key: 'lavender', icon: '💜', label: 'Soft lavender' },
+    { key: 'matcha',   icon: '🍵', label: 'Soft matcha' }
+  ];
+  let themeIndex = 0;
+  themeBtn.addEventListener('click', () => {
+    themeIndex = (themeIndex + 1) % themes.length;
+    const t = themes[themeIndex];
+    document.documentElement.setAttribute('data-theme', t.key);
+    themeBtn.textContent = t.icon;
+    themeBtn.title = t.label;
+  });
+
+  /* ---------- ambient audio (procedurally generated, no external files) ---------- */
+  let audioCtx = null;
+  let currentSound = null;   // { stop() }
+  const soundModes = ['off', 'purr', 'rain'];
+  let soundIndex = 0;
+
+  function ensureAudioCtx(){
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
+
+  function startPurr(ctx){
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = 28;
+
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 5;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.07;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    gain.gain.setTargetAtTime(0.16, ctx.currentTime, 0.4);
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain.gain);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    lfo.start();
+
+    return {
+      stop(){
+        gain.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
+        setTimeout(() => { osc.stop(); lfo.stop(); }, 500);
+      }
+    };
+  }
+
+  function startRain(ctx){
+    const bufferSize = 2 * ctx.sampleRate;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++){ data[i] = Math.random()*2 - 1; }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1400;
+    filter.Q.value = 0.6;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    gain.gain.setTargetAtTime(0.05, ctx.currentTime, 0.4);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start();
+
+    return {
+      stop(){
+        gain.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
+        setTimeout(() => noise.stop(), 500);
+      }
+    };
+  }
+
+  const soundIcons = { off: '🔇', purr: '🐾', rain: '🌧️' };
+  const soundTitles = { off: 'Ambient sound: off', purr: 'Ambient sound: purring', rain: 'Ambient sound: rain' };
+
+  soundBtn.addEventListener('click', () => {
+    if(currentSound){ currentSound.stop(); currentSound = null; }
+    soundIndex = (soundIndex + 1) % soundModes.length;
+    const mode = soundModes[soundIndex];
+    soundBtn.textContent = soundIcons[mode];
+    soundBtn.title = soundTitles[mode];
+    soundBtn.classList.toggle('active', mode !== 'off');
+
+    if(mode === 'off') return;
+    const ctx = ensureAudioCtx();
+    if(ctx.state === 'suspended') ctx.resume();
+    currentSound = mode === 'purr' ? startPurr(ctx) : startRain(ctx);
+  });
+
+  /* ---------- initial load ---------- */
+  showNextCat();
 </script>
 
 </body>
